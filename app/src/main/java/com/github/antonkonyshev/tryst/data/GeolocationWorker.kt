@@ -17,6 +17,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.github.antonkonyshev.tryst.R
+import com.github.antonkonyshev.tryst.domain.GeolocationDataOwner
 import com.github.antonkonyshev.tryst.domain.GeolocationService
 import com.github.antonkonyshev.tryst.domain.LocationRepository
 import com.google.android.gms.location.LocationServices
@@ -24,10 +25,12 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.yandex.mapkit.geometry.Point
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import org.koin.core.component.inject
 
 class GeolocationWorker(
@@ -50,16 +53,29 @@ class GeolocationWorker(
 
         while (running) {
             val scope = CoroutineScope(currentCoroutineContext())
-            locationClient.getCurrentLocation(
-                Priority.PRIORITY_BALANCED_POWER_ACCURACY, CancellationTokenSource().token
-            ).addOnSuccessListener { location ->
-                TrystApplication._currentLocation.value =
-                    Point(location.latitude, location.longitude)
-                Log.d(TAG, "Current location ${location.latitude} ${location.longitude}")
 
-                scope.launch {
-                    locationRepository.saveLocation(location)
+            try {
+                locationClient.getCurrentLocation(
+                    Priority.PRIORITY_BALANCED_POWER_ACCURACY, CancellationTokenSource().token
+                ).addOnSuccessListener { location ->
+                    TrystApplication._currentLocation.value =
+                        Point(location.latitude, location.longitude)
+                    Log.d(TAG, "Current location ${location.latitude} ${location.longitude}")
+
+                    scope.launch(Dispatchers.IO) {
+                        locationRepository.saveLocation(location)
+                    }
                 }
+            } catch (err: Exception) {
+                Log.d(TAG, "Error on current location update: ${err.toString()}")
+            }
+
+            try {
+                scope.launch(Dispatchers.IO) {
+                   TrystApplication._users.value = locationRepository.getUsers()
+                }
+            } catch (err: Exception) {
+                Log.d(TAG, "Error on users locations update: ${err.toString()}")
             }
 
             delay(15000L)

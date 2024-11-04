@@ -4,6 +4,7 @@ import android.app.Application
 import com.github.antonkonyshev.tryst.BuildConfig.MAPKIT_API_KEY
 import com.github.antonkonyshev.tryst.di.geolocationBindingModule
 import com.github.antonkonyshev.tryst.di.networkModule
+import com.github.antonkonyshev.tryst.domain.User
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.context.startKoin
 
 class TrystApplication : Application(), KoinComponent {
-
     override fun onCreate() {
         instance = this
         super.onCreate()
@@ -31,11 +31,11 @@ class TrystApplication : Application(), KoinComponent {
         lateinit var instance: TrystApplication
             private set
 
+        const val geolocationWorkerName = "TrystGeolocationWorker"
+
         val _currentLocation: MutableStateFlow<Point> = MutableStateFlow(
             Point(58.58, 49.62)
         )
-        val currentLocation = _currentLocation.asStateFlow()
-
-        const val geolocationWorkerName = "TrystGeolocationWorker"
+        val _users: MutableStateFlow<Set<User>> = MutableStateFlow(emptySet())
     }
 }

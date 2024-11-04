@@ -5,10 +5,14 @@ import android.location.Location
 import android.util.Log
 import com.github.antonkonyshev.tryst.BuildConfig.GIST_ID
 import com.github.antonkonyshev.tryst.domain.LocationRepository
+import com.github.antonkonyshev.tryst.domain.User
+import com.google.gson.GsonBuilder
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody
 import org.json.JSONObject
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
@@ -18,17 +22,11 @@ import java.util.Date
 import java.util.UUID
 
 interface GistApiSchema {
-    @GET("")
-    suspend fun getUsers(): List<String>
-
     @GET("{gistId}")
-    suspend fun getUser(@Path("gistId") gistId: String): String
+    suspend fun getUsers(@Path("gistId") gistId: String): Response<GistFiles>
 
     @PATCH("{gistId}")
     suspend fun updateUser(@Path("gistId") gistId: String, @Body payload: RequestBody)
-
-    @POST("")
-    suspend fun createUser()
 }
 
 class GistRepositoryImpl(private val api: GistApiSchema, private val appContext: Context) :
@@ -43,12 +41,25 @@ class GistRepositoryImpl(private val api: GistApiSchema, private val appContext:
         return@lazy uid
     }
 
-    override suspend fun getUsers(): List<String> {
-        return emptyList()
-    }
-
-    override suspend fun getUser(id: String): String? {
-        return null
+    override suspend fun getUsers(): Set<User> {
+        var users = mutableSetOf<User>()
+        try {
+            val gson = GsonBuilder().create()
+            api.getUsers(GIST_ID).body()?.files?.forEach { gistUid, gistFile ->
+                try {
+                    if (gistUid == uid)
+                        return@forEach
+                    users.add(gson.fromJson(gistFile.content, User::class.java).apply {
+                        this@apply.uid = gistUid
+                    })
+                } catch (err: Exception) {
+                    Log.e(TAG, "Error on user gist data parsing: ${err.toString()}")
+                }
+            }
+        } catch (err: Exception) {
+            Log.e(TAG, "Error on gist data parsing: ${err.toString()}")
+        }
+        return users
     }
 
     override suspend fun saveLocation(location: Location) {
@@ -74,3 +85,6 @@ class GistRepositoryImpl(private val api: GistApiSchema, private val appContext:
         private const val TAG = "TrystGistRepository"
     }
 }
+
+data class GistFile(var content: String)
+data class GistFiles(var files: HashMap<String, GistFile>)
