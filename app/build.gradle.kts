@@ -28,6 +28,10 @@ android {
 
         buildConfigField("String", "MAPKIT_API_KEY",
             secretProperties["MAPKIT"].toString())
+        buildConfigField("String", "GITHUB_TOKEN",
+            secretProperties["GITHUB"].toString())
+        buildConfigField("String", "GIST_ID",
+            secretProperties["GIST"].toString())
     }
 
     buildTypes {
@@ -76,6 +80,12 @@ dependencies {
     implementation(libs.maps.mobile)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.okhttp)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.logging.interceptor)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
