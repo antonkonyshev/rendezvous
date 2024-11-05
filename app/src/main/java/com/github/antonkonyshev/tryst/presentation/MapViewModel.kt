@@ -5,8 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.github.antonkonyshev.tryst.data.TrystApplication
 import com.github.antonkonyshev.tryst.domain.GeolocationService
 import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.map.PlacemarkMapObject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -21,6 +24,9 @@ class MapViewModel() : ViewModel(), KoinComponent {
 
     val _target = MutableStateFlow<Point?>(currentLocation.value)
     val target = _target.asStateFlow()
+
+    val _changedPlacemark = MutableSharedFlow<String>()
+    val changedPlacemark = _changedPlacemark.asSharedFlow()
 
     init {
         get<GeolocationService>().stopWorker()

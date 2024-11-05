@@ -3,4 +3,5 @@
     <string name="sharing_geolocation_using_tryst">Обмен геолокацией с помощью Tryst</string>
     <string name="stop">Остановить</string>
     <string name="geolocation_service">Служба геолокации</string>
+    <string name="you">Вы</string>
 </resources>
