@@ -7,7 +7,6 @@ import com.github.antonkonyshev.tryst.domain.LocationRepository
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -19,9 +18,9 @@ val networkModule = module {
             .baseUrl("https://api.github.com/gists/")
             .client(
                 OkHttpClient.Builder()
-                    .addNetworkInterceptor(HttpLoggingInterceptor().apply {
-                        setLevel(HttpLoggingInterceptor.Level.BODY)
-                    })
+//                    .addNetworkInterceptor(HttpLoggingInterceptor().apply {
+//                        setLevel(HttpLoggingInterceptor.Level.BODY)
+//                    })
                     .addNetworkInterceptor(object : Interceptor {
                         override fun intercept(chain: Interceptor.Chain): Response {
                             return chain.proceed(

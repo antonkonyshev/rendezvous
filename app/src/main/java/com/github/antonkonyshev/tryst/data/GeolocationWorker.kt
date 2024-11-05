@@ -72,7 +72,7 @@ class GeolocationWorker(
 
             try {
                 scope.launch(Dispatchers.IO) {
-                   TrystApplication._users.value = locationRepository.getUsers()
+                    TrystApplication._users.value = locationRepository.getUsers()
                 }
             } catch (err: Exception) {
                 Log.d(TAG, "Error on users locations update: ${err.toString()}")
