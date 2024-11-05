@@ -1,69 +1,41 @@
 package com.github.antonkonyshev.tryst.presentation
 
 import android.Manifest
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
-import android.graphics.Rect
-import android.graphics.RectF
 import android.os.Bundle
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Adjust
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Remove
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.antonkonyshev.tryst.R
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.rememberNavController
+import com.github.antonkonyshev.tryst.presentation.map.MapViewModel
+import com.github.antonkonyshev.tryst.presentation.navigation.TrystNavHost
 import com.github.antonkonyshev.tryst.ui.theme.TrystTheme
-import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
-import com.yandex.mapkit.geometry.Circle
-import com.yandex.mapkit.geometry.Point
-import com.yandex.mapkit.map.CameraPosition
-import com.yandex.mapkit.map.IconStyle
-import com.yandex.mapkit.map.MapObject
-import com.yandex.mapkit.map.PlacemarkMapObject
-import com.yandex.mapkit.map.TextStyle
-import com.yandex.mapkit.mapview.MapView
-import com.yandex.runtime.image.ImageProvider
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.io.File
-import kotlin.math.min
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 class MainActivity : AppCompatActivity() {
+    private val _eventBus = MutableSharedFlow<UiEvent>()
+    val eventBus = _eventBus.asSharedFlow()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -111,7 +83,8 @@ class MainActivity : AppCompatActivity() {
         setContent {
             TrystTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MapScreen()
+                    val navController = rememberNavController()
+                    TrystNavHost(navController = navController)
                 }
             }
         }
@@ -125,5 +98,35 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         MapKitFactory.getInstance().onStop()
         super.onStop()
+    }
+
+    fun emitUiEvent(id: String, extras: String = "") {
+        lifecycleScope.launch {
+            _eventBus.emit(UiEvent(id, extras))
+        }
+    }
+
+    fun emitUiEvent(uiEvent: UiEvent) {
+        lifecycleScope.launch {
+            _eventBus.emit(uiEvent)
+        }
+    }
+}
+
+data class UiEvent(val id: String, val extra: String = "")
+
+fun Context.getActivity(): MainActivity? = when(this) {
+    is MainActivity -> this
+    is ContextWrapper -> baseContext.getActivity() as MainActivity
+    else -> null
+}
+
+@Composable
+fun <T> Flow<T>.collectAsEffect(
+    context: CoroutineContext = EmptyCoroutineContext,
+    block: (T) -> Unit
+) {
+    LaunchedEffect(key1 = Unit) {
+        onEach(block).flowOn(context).launchIn(this)
     }
 }

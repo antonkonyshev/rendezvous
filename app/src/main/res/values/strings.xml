@@ -4,4 +4,10 @@
     <string name="stop">Stop</string>
     <string name="geolocation_service">Geolocation service</string>
     <string name="you">You</string>
+    <string name="menu">Menu</string>
+    <string name="zoom_out">Zoom Out</string>
+    <string name="zoom_in">Zoom In</string>
+    <string name="center">Center</string>
+    <string name="map">Map</string>
+    <string name="settings">Settings</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.github.antonkonyshev.tryst.presentation
+package com.github.antonkonyshev.tryst.presentation.map
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -19,12 +19,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.antonkonyshev.tryst.R
+import com.github.antonkonyshev.tryst.presentation.getActivity
+import com.github.antonkonyshev.tryst.presentation.navigation.TrystNavRouting
+import com.github.antonkonyshev.tryst.presentation.settings.changeAvatar
 import com.yandex.mapkit.geometry.Point
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
 @Composable
@@ -45,13 +49,19 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
 
         FloatingActionButton(
             onClick = {
-                ownAvatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                ctx.getActivity()?.emitUiEvent("NavigateTo", TrystNavRouting.route_settings)
+//                ownAvatarPicker.launch(
+//                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+//                )
             },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(start = 0.dp, top = 40.dp, end = 15.dp, bottom = 0.dp)
         ) {
-            Icon(imageVector = Icons.Outlined.Menu, contentDescription = "Menu")
+            Icon(
+                imageVector = Icons.Outlined.Menu,
+                contentDescription = stringResource(R.string.menu)
+            )
         }
 
         Column(
@@ -63,14 +73,20 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
             FloatingActionButton(
                 onClick = { viewModel._zoom.value -= 0.6f },
             ) {
-                Icon(imageVector = Icons.Outlined.Remove, contentDescription = "Zoom Out")
+                Icon(
+                    imageVector = Icons.Outlined.Remove,
+                    contentDescription = stringResource(R.string.zoom_out)
+                )
             }
 
             FloatingActionButton(
                 onClick = { viewModel._zoom.value += 0.6f },
                 modifier = Modifier.padding(0.dp, 12.dp, 0.dp, 0.dp)
             ) {
-                Icon(imageVector = Icons.Outlined.Add, contentDescription = "Zoom In")
+                Icon(
+                    imageVector = Icons.Outlined.Add,
+                    contentDescription = stringResource(R.string.zoom_in)
+                )
             }
 
             Row(
@@ -94,7 +110,10 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
                     onClick = { viewModel._target.value = viewModel.currentLocation.value },
                     modifier = Modifier.padding(24.dp, 0.dp, 0.dp, 0.dp)
                 ) {
-                    Icon(imageVector = Icons.Outlined.Adjust, contentDescription = "Center")
+                    Icon(
+                        imageVector = Icons.Outlined.Adjust,
+                        contentDescription = stringResource(R.string.center)
+                    )
                 }
             }
         }

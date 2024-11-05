@@ -1,4 +1,4 @@
-package com.github.antonkonyshev.tryst.presentation
+package com.github.antonkonyshev.tryst.presentation.map
 
 import android.content.Context
 import android.icu.text.RelativeDateTimeFormatter
@@ -21,8 +21,6 @@ import com.yandex.mapkit.map.TextStyle
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import java.util.Date
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 @Composable
 fun Map(
@@ -156,10 +154,29 @@ fun updatePlacemarkText(placemark: PlacemarkMapObject, user: User) {
     val formatter = RelativeDateTimeFormatter.getInstance()
     val diff = (Date().time - user.timestamp) / 1000.0
     val timeAgo = when {
-        diff > 86400 -> formatter.format((diff / 86400.0).toInt().toDouble(), RelativeDateTimeFormatter.Direction.LAST, RelativeDateTimeFormatter.RelativeUnit.DAYS)
-        diff > 3600 -> formatter.format((diff / 3600.0).toInt().toDouble(), RelativeDateTimeFormatter.Direction.LAST, RelativeDateTimeFormatter.RelativeUnit.HOURS)
-        diff > 60 -> formatter.format((diff / 60.0).toInt().toDouble(), RelativeDateTimeFormatter.Direction.LAST, RelativeDateTimeFormatter.RelativeUnit.MINUTES)
-        else -> formatter.format(diff.toInt().toDouble(), RelativeDateTimeFormatter.Direction.LAST, RelativeDateTimeFormatter.RelativeUnit.SECONDS)
+        diff > 86400 -> formatter.format(
+            (diff / 86400.0).toInt().toDouble(),
+            RelativeDateTimeFormatter.Direction.LAST,
+            RelativeDateTimeFormatter.RelativeUnit.DAYS
+        )
+
+        diff > 3600 -> formatter.format(
+            (diff / 3600.0).toInt().toDouble(),
+            RelativeDateTimeFormatter.Direction.LAST,
+            RelativeDateTimeFormatter.RelativeUnit.HOURS
+        )
+
+        diff > 60 -> formatter.format(
+            (diff / 60.0).toInt().toDouble(),
+            RelativeDateTimeFormatter.Direction.LAST,
+            RelativeDateTimeFormatter.RelativeUnit.MINUTES
+        )
+
+        else -> formatter.format(
+            diff.toInt().toDouble(),
+            RelativeDateTimeFormatter.Direction.LAST,
+            RelativeDateTimeFormatter.RelativeUnit.SECONDS
+        )
     }
     placemark.setText("${user.name}\n${timeAgo}")
 }

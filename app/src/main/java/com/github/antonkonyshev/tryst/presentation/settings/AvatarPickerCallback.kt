@@ -1,4 +1,4 @@
-package com.github.antonkonyshev.tryst.presentation
+package com.github.antonkonyshev.tryst.presentation.settings
 
 import android.content.Context
 import android.graphics.Bitmap

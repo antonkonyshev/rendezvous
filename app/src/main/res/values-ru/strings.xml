@@ -4,4 +4,10 @@
     <string name="stop">Остановить</string>
     <string name="geolocation_service">Служба геолокации</string>
     <string name="you">Вы</string>
+    <string name="menu">Меню</string>
+    <string name="zoom_out">Отдалить</string>
+    <string name="zoom_in">Приблизить</string>
+    <string name="center">Центрировать</string>
+    <string name="map">Карта</string>
+    <string name="settings">Настройки</string>
 </resources>

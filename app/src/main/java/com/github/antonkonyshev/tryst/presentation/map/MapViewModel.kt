@@ -1,11 +1,10 @@
-package com.github.antonkonyshev.tryst.presentation
+package com.github.antonkonyshev.tryst.presentation.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.antonkonyshev.tryst.data.TrystApplication
 import com.github.antonkonyshev.tryst.domain.GeolocationService
 import com.yandex.mapkit.geometry.Point
-import com.yandex.mapkit.map.PlacemarkMapObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
