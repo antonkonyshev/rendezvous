@@ -10,4 +10,7 @@
     <string name="center">Центрировать</string>
     <string name="map">Карта</string>
     <string name="settings">Настройки</string>
+    <string name="back">Назад</string>
+    <string name="avatar">Аватар</string>
+    <string name="your_placemark">Ваша геометка</string>
 </resources>

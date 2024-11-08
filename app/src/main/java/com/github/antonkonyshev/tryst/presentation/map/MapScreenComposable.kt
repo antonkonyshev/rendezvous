@@ -1,8 +1,5 @@
 package com.github.antonkonyshev.tryst.presentation.map
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,14 +19,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.antonkonyshev.tryst.R
 import com.github.antonkonyshev.tryst.presentation.getActivity
 import com.github.antonkonyshev.tryst.presentation.navigation.TrystNavRouting
-import com.github.antonkonyshev.tryst.presentation.settings.changeAvatar
 import com.yandex.mapkit.geometry.Point
-import kotlinx.coroutines.launch
 
 @Composable
 fun MapScreen(viewModel: MapViewModel = viewModel()) {
@@ -37,22 +31,10 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
         Map()
 
         val ctx = LocalContext.current
-        val ownAvatarPicker = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.PickVisualMedia()
-        ) {
-            viewModel.viewModelScope.launch {
-                if (changeAvatar(ctx, "own", it)) {
-                    viewModel._changedPlacemark.emit("own")
-                }
-            }
-        }
 
         FloatingActionButton(
             onClick = {
                 ctx.getActivity()?.emitUiEvent("NavigateTo", TrystNavRouting.route_settings)
-//                ownAvatarPicker.launch(
-//                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                )
             },
             modifier = Modifier
                 .align(Alignment.TopEnd)

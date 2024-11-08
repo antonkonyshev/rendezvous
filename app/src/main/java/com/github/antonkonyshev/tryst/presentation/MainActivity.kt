@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
 
 data class UiEvent(val id: String, val extra: String = "")
 
-fun Context.getActivity(): MainActivity? = when(this) {
+fun Context.getActivity(): MainActivity? = when (this) {
     is MainActivity -> this
     is ContextWrapper -> baseContext.getActivity() as MainActivity
     else -> null

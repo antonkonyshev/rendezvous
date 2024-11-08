@@ -58,6 +58,9 @@ class GeolocationWorker(
                 locationClient.getCurrentLocation(
                     Priority.PRIORITY_BALANCED_POWER_ACCURACY, CancellationTokenSource().token
                 ).addOnSuccessListener { location ->
+                    if(location == null) {
+                        return@addOnSuccessListener
+                    }
                     TrystApplication._currentLocation.value =
                         Point(location.latitude, location.longitude)
                     Log.d(TAG, "Current location ${location.latitude} ${location.longitude}")

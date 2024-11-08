@@ -15,7 +15,7 @@ import android.util.Log
 import java.io.File
 import kotlin.math.min
 
-fun changeAvatar(context: Context, uid: String, uri: Uri?): Boolean {
+fun changeAvatar(context: Context, uid: String, uri: Uri?): String? {
     if (uri != null) {
         try {
             val srcBitmap = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
@@ -66,10 +66,10 @@ fun changeAvatar(context: Context, uid: String, uri: Uri?): Boolean {
             }
             context.getSharedPreferences("avatars", 0).edit()
                 .putString(uid, avatarFile.path).commit()
-            return true
+            return avatarFile.path
         } catch (err: Exception) {
             Log.e("AvatarPicker", "Error on avatar change: ${err.toString()}")
         }
     }
-    return false
+    return null
 }

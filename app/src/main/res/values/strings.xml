@@ -10,4 +10,7 @@
     <string name="center">Center</string>
     <string name="map">Map</string>
     <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="avatar">Avatar</string>
+    <string name="your_placemark">Your placemark</string>
 </resources>
