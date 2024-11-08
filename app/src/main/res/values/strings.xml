@@ -13,4 +13,5 @@
     <string name="back">Back</string>
     <string name="avatar">Avatar</string>
     <string name="your_placemark">Your placemark</string>
+    <string name="your_name">Your name</string>
 </resources>

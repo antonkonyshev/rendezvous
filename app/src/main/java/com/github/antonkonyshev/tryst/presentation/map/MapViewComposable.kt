@@ -139,7 +139,15 @@ fun updatePlacemark(
             }
             it.geometry = location
             it.setTextStyle(TextStyle().setPlacement(TextStyle.Placement.RIGHT))
-            it.setText(user?.name ?: ctx.getString(R.string.you))
+            it.setText(
+                when (user?.name) {
+                    null -> ctx.getSharedPreferences("avatars", 0).getString(
+                        "name", ctx.getString(R.string.you)
+                    )!!
+
+                    else -> user.name
+                }
+            )
         }
 
         else -> existingPlacemark.apply { geometry = location }

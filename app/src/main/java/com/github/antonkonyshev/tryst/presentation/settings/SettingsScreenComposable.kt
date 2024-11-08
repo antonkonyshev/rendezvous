@@ -1,22 +1,28 @@
 package com.github.antonkonyshev.tryst.presentation.settings
 
 import android.net.Uri
+import android.widget.EditText
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBackIosNew
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -62,6 +68,34 @@ fun SettingsScreen(
                 }
             }
         )
+
+        val userName = remember {
+            mutableStateOf<String>(ctx.getSharedPreferences("avatars", 0).getString("name", "")!!)
+        }
+        val nameDialog = remember { mutableStateOf(false) }
+        ListItem(
+            leadingContent = {
+                Text("", modifier = Modifier.size(60.dp, 60.dp))
+            },
+            headlineContent = {
+                Text(stringResource(R.string.your_name))
+            },
+            supportingContent = {
+                Text(userName.value)
+            },
+            modifier = Modifier.clickable {
+                nameDialog.value = true
+            }
+        )
+        AnimatedVisibility(visible = nameDialog.value) {
+            UserNameDialog(
+                userName
+            ) {
+                ctx.getSharedPreferences("avatars", 0).edit().putString("name", userName.value)
+                    .commit()
+                nameDialog.value = false
+            }
+        }
 
         for (user in listOf(null).plus(users)) {
             val avatarPath = remember {
@@ -119,6 +153,23 @@ fun AvatarListItem(user: User?, avatarPath: String?, onChange: (Uri?) -> Unit) {
             avatarPicker.launch(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
             )
+        }
+    )
+}
+
+@Composable
+fun UserNameDialog(
+    userName: MutableState<String>,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { onConfirm() },
+        title = { Text(stringResource(id = R.string.your_name)) },
+        text = { TextField(value = userName.value, onValueChange = { userName.value = it }) },
+        confirmButton = {
+            Button(onClick = { onConfirm() }) {
+                Text("OK")
+            }
         }
     )
 }
