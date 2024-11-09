@@ -14,4 +14,5 @@
     <string name="avatar">Avatar</string>
     <string name="your_placemark">Your placemark</string>
     <string name="your_name">Your name</string>
+    <string name="yandex_mapkit_conditions_link">https://yandex.ru/dev/commercial/doc/ru/concepts/mapkit</string>
 </resources>

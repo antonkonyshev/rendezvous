@@ -1,7 +1,6 @@
 package com.github.antonkonyshev.tryst.presentation.settings
 
 import android.net.Uri
-import android.widget.EditText
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -9,15 +8,18 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBackIosNew
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -29,7 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -51,75 +55,100 @@ fun SettingsScreen(
     val ctx = LocalContext.current
 
     Column {
-        TopAppBar(
-            title = {
-                Text(text = stringResource(id = R.string.settings))
-            },
-            navigationIcon = {
-                IconButton(
-                    onClick = {
-                        ctx.getActivity()?.emitUiEvent("NavigateTo", TrystNavRouting.route_map)
+        Column(modifier = Modifier.weight(1f)) {
+            TopAppBar(
+                title = {
+                    Text(text = stringResource(id = R.string.settings))
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            ctx.getActivity()?.emitUiEvent("NavigateTo", TrystNavRouting.route_map)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ArrowBackIosNew,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowBackIosNew,
-                        contentDescription = stringResource(R.string.back)
-                    )
                 }
-            }
-        )
+            )
 
-        val userName = remember {
-            mutableStateOf<String>(ctx.getSharedPreferences("avatars", 0).getString("name", "")!!)
-        }
-        val nameDialog = remember { mutableStateOf(false) }
-        ListItem(
-            leadingContent = {
-                Text("", modifier = Modifier.size(60.dp, 60.dp))
-            },
-            headlineContent = {
-                Text(stringResource(R.string.your_name))
-            },
-            supportingContent = {
-                Text(userName.value)
-            },
-            modifier = Modifier.clickable {
-                nameDialog.value = true
-            }
-        )
-        AnimatedVisibility(visible = nameDialog.value) {
-            UserNameDialog(
-                userName
-            ) {
-                ctx.getSharedPreferences("avatars", 0).edit().putString("name", userName.value)
-                    .commit()
-                nameDialog.value = false
-            }
-        }
+            Divider(thickness = 1.dp)
 
-        for (user in listOf(null).plus(users)) {
-            val avatarPath = remember {
-                mutableStateOf<String?>(
-                    ctx.getSharedPreferences("avatars", 0)
-                        .getString(user?.uid ?: "own", null)
+            val userName = remember {
+                mutableStateOf<String>(
+                    ctx.getSharedPreferences("avatars", 0).getString("name", "")!!
                 )
             }
+            val nameDialog = remember { mutableStateOf(false) }
+            ListItem(
+                leadingContent = {
+                    Text("", modifier = Modifier.size(60.dp, 60.dp))
+                },
+                headlineContent = {
+                    Text(stringResource(R.string.your_name))
+                },
+                supportingContent = {
+                    Text(userName.value)
+                },
+                modifier = Modifier.clickable {
+                    nameDialog.value = true
+                }
+            )
 
-            AvatarListItem(
-                user = user, avatarPath = avatarPath.value,
-            ) { uri ->
-                if (uri != null) {
-                    val filePath = changeAvatar(ctx, user?.uid ?: "own", uri)
-                    if (filePath != null) {
-                        avatarPath.value = filePath
-                        viewModel.viewModelScope.launch {
-                            viewModel._changedPlacemark.emit(user?.uid ?: "own")
+            AnimatedVisibility(visible = nameDialog.value) {
+                UserNameDialog(
+                    userName
+                ) {
+                    ctx.getSharedPreferences("avatars", 0).edit().putString("name", userName.value)
+                        .commit()
+                    nameDialog.value = false
+                }
+            }
+
+            Divider(thickness = 1.dp)
+
+            for (user in listOf(null).plus(users)) {
+                val avatarPath = remember {
+                    mutableStateOf<String?>(
+                        ctx.getSharedPreferences("avatars", 0)
+                            .getString(user?.uid ?: "own", null)
+                    )
+                }
+
+                AvatarListItem(
+                    user = user, avatarPath = avatarPath.value,
+                ) { uri ->
+                    if (uri != null) {
+                        val filePath = changeAvatar(ctx, user?.uid ?: "own", uri)
+                        if (filePath != null) {
+                            avatarPath.value = filePath
+                            viewModel.viewModelScope.launch {
+                                viewModel._changedPlacemark.emit(user?.uid ?: "own")
+                            }
                         }
                     }
                 }
+
+                Divider(thickness = 1.dp)
             }
         }
 
+        val uriHandler = LocalUriHandler.current
+        ListItem(
+            headlineContent = {
+                Text(
+                    "Yandex MapKit",
+                    textAlign = TextAlign.End,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            modifier = Modifier.clickable {
+                uriHandler.openUri(ctx.getString(R.string.yandex_mapkit_conditions_link))
+            }
+        )
     }
 }
 

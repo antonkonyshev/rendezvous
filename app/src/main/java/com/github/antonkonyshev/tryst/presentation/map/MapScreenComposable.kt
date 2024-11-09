@@ -1,9 +1,11 @@
 package com.github.antonkonyshev.tryst.presentation.map
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Adjust
@@ -15,6 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -24,6 +28,7 @@ import com.github.antonkonyshev.tryst.R
 import com.github.antonkonyshev.tryst.presentation.getActivity
 import com.github.antonkonyshev.tryst.presentation.navigation.TrystNavRouting
 import com.yandex.mapkit.geometry.Point
+import com.yandex.runtime.image.ImageProvider
 
 @Composable
 fun MapScreen(viewModel: MapViewModel = viewModel()) {
@@ -36,6 +41,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
             onClick = {
                 ctx.getActivity()?.emitUiEvent("NavigateTo", TrystNavRouting.route_settings)
             },
+            containerColor = Color.White,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(start = 0.dp, top = 40.dp, end = 15.dp, bottom = 0.dp)
@@ -54,6 +60,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
         ) {
             FloatingActionButton(
                 onClick = { viewModel._zoom.value -= 0.6f },
+                containerColor = Color.White,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Remove,
@@ -63,6 +70,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
 
             FloatingActionButton(
                 onClick = { viewModel._zoom.value += 0.6f },
+                containerColor = Color.White,
                 modifier = Modifier.padding(0.dp, 12.dp, 0.dp, 0.dp)
             ) {
                 Icon(
@@ -79,17 +87,34 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
                         onClick = {
                             viewModel._target.value = Point(user.latitude, user.longitude)
                         },
+                        containerColor = Color.White,
                         modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp)
                     ) {
-                        Text(
-                            text = if (user.name.length > 6) user.name.substring(0, 5).uppercase()
-                            else user.name.uppercase()
-                        )
+                        var avatarPath: String? = null
+                        if (user?.uid != null) {
+                            avatarPath = ctx.getSharedPreferences("avatars", 0)
+                                .getString(user?.uid, null)
+                        }
+                        if (avatarPath != null) {
+                            Image(
+                                bitmap = ImageProvider.fromFile(avatarPath).image
+                                    .asImageBitmap(),
+                                contentDescription = user?.name ?: "Guest",
+                                modifier = Modifier.size(50.dp, 50.dp)
+                            )
+                        } else {
+                            Text(
+                                text = if (user.name.length > 6) user.name.substring(0, 5)
+                                    .uppercase()
+                                else user.name.uppercase()
+                            )
+                        }
                     }
                 }
 
                 FloatingActionButton(
                     onClick = { viewModel._target.value = viewModel.currentLocation.value },
+                    containerColor = Color.White,
                     modifier = Modifier.padding(24.dp, 0.dp, 0.dp, 0.dp)
                 ) {
                     Icon(

@@ -66,6 +66,7 @@ fun Map(
                 viewModel.currentLocation.value, zoom, 0.0f, 0.0f
             ), Animation(Animation.Type.SMOOTH, 0.25f), null
         )
+        mapView.invalidate()
     }
 
     LaunchedEffect(key1 = Unit) {

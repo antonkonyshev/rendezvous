@@ -38,6 +38,9 @@ class GistRepositoryImpl(private val api: GistApiSchema, private val appContext:
         }
         return@lazy uid
     }
+    private val name: String by lazy {
+        appContext.getSharedPreferences("avatars", 0).getString("name", "Guest")!!
+    }
 
     override suspend fun getUsers(): Set<User> {
         var users = mutableSetOf<User>()
@@ -66,6 +69,7 @@ class GistRepositoryImpl(private val api: GistApiSchema, private val appContext:
                 put("files", JSONObject().apply {
                     put(uid, JSONObject().apply {
                         put("content", JSONObject().apply {
+                            put("name", name)
                             put("latitude", location.latitude)
                             put("longitude", location.longitude)
                             put("timestamp", Date().time)
