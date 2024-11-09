@@ -28,7 +28,6 @@ class MapViewModel() : ViewModel(), KoinComponent {
     val changedPlacemark = _changedPlacemark.asSharedFlow()
 
     init {
-        get<GeolocationService>().stopWorker()
         startGeolocationWorker()
     }
 
@@ -36,10 +35,5 @@ class MapViewModel() : ViewModel(), KoinComponent {
         viewModelScope.launch(Dispatchers.IO) {
             get<GeolocationService>().startWorker()
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        get<GeolocationService>().stopWorker()
     }
 }

@@ -8,19 +8,16 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
-import com.github.antonkonyshev.tryst.presentation.map.MapViewModel
+import com.github.antonkonyshev.tryst.domain.GeolocationService
 import com.github.antonkonyshev.tryst.presentation.navigation.TrystNavHost
 import com.github.antonkonyshev.tryst.ui.theme.TrystTheme
 import com.yandex.mapkit.MapKitFactory
@@ -31,6 +28,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.get
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -67,8 +65,9 @@ class MainActivity : AppCompatActivity() {
                         Manifest.permission.ACCESS_COARSE_LOCATION, false
                     )
                 ) {
-                    val viewModel: MapViewModel by viewModels()
-                    viewModel.startGeolocationWorker()
+                    lifecycleScope.launch {
+                        get<GeolocationService>().startWorker()
+                    }
                 }
             }
 
