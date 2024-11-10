@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Context.NOTIFICATION_SERVICE
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -38,40 +39,21 @@ class GeolocationWorker(
     private val appContext: Context, private val params: WorkerParameters
 ) : CoroutineWorker(appContext, params), KoinComponent {
     private val locationClient = LocationServices.getFusedLocationProviderClient(appContext)
-    private val running = true
+    private var running = true
     private val locationRepository: LocationRepository by inject()
-    private var notificationId: Int = 0
     private val notificationManager = applicationContext.getSystemService(
         NOTIFICATION_SERVICE
     ) as NotificationManager
+    var notificationId: Int = 0
 
     override suspend fun doWork(): Result {
         try {
-            if (ActivityCompat.checkSelfPermission(
-                    applicationContext, Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                return Result.failure()
-            }
-
             setForeground(ForegroundInfo(notificationId, createNotification()))
+            val scope = CoroutineScope(currentCoroutineContext())
 
-            while (running) {
-                val scope = CoroutineScope(currentCoroutineContext())
-
+            do {
                 try {
-                    locationClient.getCurrentLocation(
-                        Priority.PRIORITY_BALANCED_POWER_ACCURACY, CancellationTokenSource().token
-                    ).addOnSuccessListener { location ->
-                        if (location == null) {
-                            return@addOnSuccessListener
-                        }
-                        TrystApplication._currentLocation.value =
-                            Point(location.latitude, location.longitude)
-                        scope.launch(Dispatchers.IO) {
-                            locationRepository.saveLocation(location)
-                        }
-                    }
+                    requestCurrentLocation()
                 } catch (err: Exception) {
                     Log.e(TAG, "Error on current location update: ${err.toString()}")
                 }
@@ -85,17 +67,13 @@ class GeolocationWorker(
                 }
 
                 try {
-                    if (
-                        notificationManager.activeNotifications.any { it.id == notificationId } == false
-                    ) {
-                        notificationManager.notify(notificationId, createNotification())
-                    }
+                    updateNotificationState()
                 } catch (err: Exception) {
                     Log.e(TAG, "Error on geolocation service notification check: ${err.toString()}")
                 }
 
                 delay(15000L)
-            }
+            } while (running)
         } catch (err: Exception) {
             if (err !is CancellationException) {
                 Log.e(TAG, "Error on geolocation service execution ${err.toString()}")
@@ -103,11 +81,45 @@ class GeolocationWorker(
             }
         } finally {
             notificationManager.cancel(notificationId)
-            return Result.success()
+        }
+        return Result.success()
+    }
+
+    fun scheduleStop() {
+        running = false
+    }
+
+    private fun requestCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(
+                applicationContext, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            locationClient.getCurrentLocation(
+                Priority.PRIORITY_BALANCED_POWER_ACCURACY, CancellationTokenSource().token
+            ).addOnSuccessListener(::updateCurrentLocation)
         }
     }
 
-    private fun createNotification(): Notification {
+    fun updateCurrentLocation(location: Location?) {
+        if (location == null) {
+            return
+        }
+        TrystApplication._currentLocation.value =
+            Point(location.latitude, location.longitude)
+        CoroutineScope(Dispatchers.IO).launch {
+            locationRepository.saveLocation(location)
+        }
+    }
+
+    fun updateNotificationState() {
+        if (
+            !notificationManager.activeNotifications.any { it.id == notificationId }
+        ) {
+            notificationManager.notify(notificationId, createNotification())
+        }
+    }
+
+    fun createNotification(): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel()
         }
