@@ -1,6 +1,7 @@
 package com.github.antonkonyshev.tryst.data
 
 import android.Manifest
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -40,6 +41,9 @@ class GeolocationWorker(
     private val running = true
     private val locationRepository: LocationRepository by inject()
     private var notificationId: Int = 0
+    private val notificationManager = applicationContext.getSystemService(
+        NOTIFICATION_SERVICE
+    ) as NotificationManager
 
     override suspend fun doWork(): Result {
         try {
@@ -50,7 +54,7 @@ class GeolocationWorker(
                 return Result.failure()
             }
 
-            setForeground(createForegroundInfo())
+            setForeground(ForegroundInfo(notificationId, createNotification()))
 
             while (running) {
                 val scope = CoroutineScope(currentCoroutineContext())
@@ -69,7 +73,7 @@ class GeolocationWorker(
                         }
                     }
                 } catch (err: Exception) {
-                    Log.d(TAG, "Error on current location update: ${err.toString()}")
+                    Log.e(TAG, "Error on current location update: ${err.toString()}")
                 }
 
                 try {
@@ -77,7 +81,17 @@ class GeolocationWorker(
                         TrystApplication._users.value = locationRepository.getUsers()
                     }
                 } catch (err: Exception) {
-                    Log.d(TAG, "Error on users locations update: ${err.toString()}")
+                    Log.e(TAG, "Error on users locations update: ${err.toString()}")
+                }
+
+                try {
+                    if (
+                        notificationManager.activeNotifications.any { it.id == notificationId } == false
+                    ) {
+                        notificationManager.notify(notificationId, createNotification())
+                    }
+                } catch (err: Exception) {
+                    Log.e(TAG, "Error on geolocation service notification check: ${err.toString()}")
                 }
 
                 delay(15000L)
@@ -88,22 +102,16 @@ class GeolocationWorker(
                 return Result.failure()
             }
         } finally {
-            cancelNotification()
+            notificationManager.cancel(notificationId)
             return Result.success()
         }
     }
 
-    private fun cancelNotification() {
-        (appContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
-            .cancel(notificationId)
-    }
-
-    private fun createForegroundInfo(): ForegroundInfo {
-        val cancelIntent = WorkManager.getInstance(applicationContext).createCancelPendingIntent(id)
+    private fun createNotification(): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel()
         }
-        val notification = NotificationCompat
+        return NotificationCompat
             .Builder(applicationContext, TrystApplication.geolocationWorkerName)
             .setContentTitle(applicationContext.getString(R.string.sharing_geolocation_using_tryst))
             .setTicker(applicationContext.getString(R.string.sharing_geolocation_using_tryst))
@@ -113,21 +121,23 @@ class GeolocationWorker(
             .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
                 applicationContext.getString(R.string.stop),
-                cancelIntent
+                WorkManager.getInstance(applicationContext).createCancelPendingIntent(id)
             ).build()
-        return ForegroundInfo(notificationId, notification)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createChannel() {
-        val channel = NotificationChannel(
-            TrystApplication.geolocationWorkerName,
-            applicationContext.getString(R.string.geolocation_service),
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
-        val notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
+        if (notificationManager.getNotificationChannel(
+                TrystApplication.geolocationWorkerName
+            ) == null
+        ) {
+            val channel = NotificationChannel(
+                TrystApplication.geolocationWorkerName,
+                applicationContext.getString(R.string.geolocation_service),
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     companion object {

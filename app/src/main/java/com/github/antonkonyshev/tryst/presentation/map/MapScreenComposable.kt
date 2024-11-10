@@ -15,23 +15,31 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.antonkonyshev.tryst.R
+import com.github.antonkonyshev.tryst.domain.User
 import com.github.antonkonyshev.tryst.presentation.getActivity
 import com.github.antonkonyshev.tryst.presentation.navigation.TrystNavRouting
 import com.yandex.mapkit.geometry.Point
 import com.yandex.runtime.image.ImageProvider
+import java.util.Date
 
 @Composable
-fun MapScreen(viewModel: MapViewModel = viewModel()) {
+fun MapScreen(
+    viewModel: MapViewModel = viewModel(),
+    users: Set<User> = viewModel.users.collectAsStateWithLifecycle().value,
+    modifier: Modifier = Modifier
+) {
     Box {
         Map()
 
@@ -82,7 +90,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
             Row(
                 modifier = Modifier.padding(start = 0.dp, top = 24.dp, end = 0.dp, bottom = 0.dp)
             ) {
-                viewModel.users.collectAsStateWithLifecycle().value.forEach { user ->
+                users.forEach { user ->
                     FloatingActionButton(
                         onClick = {
                             viewModel._target.value = Point(user.latitude, user.longitude)
@@ -125,4 +133,17 @@ fun MapScreen(viewModel: MapViewModel = viewModel()) {
             }
         }
     }
+}
+
+@Preview(showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+fun MapScreenPreview() {
+    val users = remember {
+        setOf<User>(
+            User("123", "First", 50.0, 50.0, Date().time),
+            User("234", "Second", 51.0, 51.0, Date().time),
+            User("345", "Third", 52.0, 52.0, Date().time),
+        )
+    }
+    MapScreen(users = users)
 }

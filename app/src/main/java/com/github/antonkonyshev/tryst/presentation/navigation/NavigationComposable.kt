@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -43,7 +44,8 @@ sealed class TrystNavRouting(
 
 @Composable
 fun TrystNavHost(
-    navController: NavHostController
+    navController: NavHostController,
+    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
@@ -54,11 +56,11 @@ fun TrystNavHost(
         popExitTransition = { fadeOut() }
     ) {
         composable(TrystNavRouting.route_map) {
-            MapScreen()
+            MapScreen(modifier = modifier)
         }
 
         composable(TrystNavRouting.route_settings) {
-            SettingsScreen()
+            SettingsScreen(modifier = modifier)
         }
     }
 
