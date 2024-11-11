@@ -158,7 +158,7 @@ class GeolocationWorker(
 }
 
 class GeolocationServiceImpl(private val appContext: Context) : GeolocationService {
-    override suspend fun startWorker() {
+    override fun startWorker() {
         val workManager = WorkManager.getInstance(appContext)
         workManager.enqueueUniqueWork(
             TrystApplication.geolocationWorkerName,

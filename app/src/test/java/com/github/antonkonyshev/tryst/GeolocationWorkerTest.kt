@@ -7,15 +7,20 @@ import android.location.Location
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.Configuration
+import androidx.work.WorkManager
+import androidx.work.await
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.antonkonyshev.tryst.data.GeolocationWorker
 import com.github.antonkonyshev.tryst.data.GistRepositoryImpl
 import com.github.antonkonyshev.tryst.data.TrystApplication
+import com.github.antonkonyshev.tryst.di.geolocationBindingModule
+import com.github.antonkonyshev.tryst.di.networkModule
 import com.github.antonkonyshev.tryst.domain.GeolocationService
 import com.github.antonkonyshev.tryst.domain.LocationRepository
 import com.github.antonkonyshev.tryst.domain.User
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
@@ -25,6 +30,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.GlobalContext
+import org.koin.core.context.loadKoinModules
+import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.KoinTest
@@ -43,11 +53,16 @@ class GeolocationWorkerTest : KoinTest {
 
     @Before
     fun setUp() = runBlocking {
-        val workManagerConfig = Configuration.Builder()
-            .setMinimumLoggingLevel(Log.DEBUG)
-            .setExecutor(SynchronousExecutor())
-            .build()
+        val workManagerConfig = Configuration.Builder().setMinimumLoggingLevel(Log.DEBUG)
+            .setExecutor(SynchronousExecutor()).build()
         context = ApplicationProvider.getApplicationContext()
+        if (GlobalContext.getOrNull() == null) {
+            startKoin {
+                androidLogger()
+                androidContext(context)
+                modules(networkModule, geolocationBindingModule)
+            }
+        }
         WorkManagerTestInitHelper.initializeTestWorkManager(context, workManagerConfig)
         locationRepositoryMock = Mockito.mock(GistRepositoryImpl::class.java)
         `when`(locationRepositoryMock.getUsers()).thenReturn(
@@ -57,9 +72,9 @@ class GeolocationWorkerTest : KoinTest {
             )
         )
         declare {
-            module {
+            loadKoinModules(module {
                 single<LocationRepository> { locationRepositoryMock }
-            }
+            })
         }
         worker = TestListenableWorkerBuilder<GeolocationWorker>(context).build()
     }
@@ -115,7 +130,20 @@ class GeolocationWorkerTest : KoinTest {
 
     @Test
     fun testStartGeolocationService() = runBlocking {
-        TODO()
+        val workManager = WorkManager.getInstance(context)
+        val notificationManager = context.getSystemService(
+            NOTIFICATION_SERVICE
+        ) as NotificationManager
+        var infos = workManager
+            .getWorkInfosForUniqueWork(TrystApplication.geolocationWorkerName).await()
+        assertTrue(infos.all { it.state.isFinished })
+        assertEquals(notificationManager.activeNotifications.size, 0)
         get<GeolocationService>().startWorker()
+        infos = workManager
+            .getWorkInfosForUniqueWork(TrystApplication.geolocationWorkerName).await()
+        assertTrue(infos.any { !it.state.isFinished })
+        delay(500L)
+        assertEquals(notificationManager.activeNotifications.size, 1)
+        get<GeolocationService>().stopWorker()
     }
 }

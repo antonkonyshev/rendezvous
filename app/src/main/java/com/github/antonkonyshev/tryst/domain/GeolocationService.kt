@@ -1,6 +1,6 @@
 package com.github.antonkonyshev.tryst.domain
 
 interface GeolocationService {
-    suspend fun startWorker()
+    fun startWorker()
     fun stopWorker()
 }
