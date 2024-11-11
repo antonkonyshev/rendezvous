@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -36,15 +38,24 @@ import java.util.Date
 
 @Composable
 fun MapScreen(
+    viewModel: MapViewModel = viewModel(), modifier: Modifier = Modifier
+) {
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Map()
+
+        MapControls(viewModel = viewModel, modifier = Modifier.fillMaxSize())
+    }
+}
+
+@Composable
+fun MapControls(
     viewModel: MapViewModel = viewModel(),
     users: Set<User> = viewModel.users.collectAsStateWithLifecycle().value,
     modifier: Modifier = Modifier
 ) {
-    Box {
-        Map()
+    val ctx = LocalContext.current
 
-        val ctx = LocalContext.current
-
+    Box(modifier = Modifier) {
         FloatingActionButton(
             onClick = {
                 ctx.getActivity()?.emitUiEvent("NavigateTo", TrystNavRouting.route_settings)
@@ -100,13 +111,12 @@ fun MapScreen(
                     ) {
                         var avatarPath: String? = null
                         if (user?.uid != null) {
-                            avatarPath = ctx.getSharedPreferences("avatars", 0)
-                                .getString(user?.uid, null)
+                            avatarPath =
+                                ctx.getSharedPreferences("avatars", 0).getString(user?.uid, null)
                         }
                         if (avatarPath != null) {
                             Image(
-                                bitmap = ImageProvider.fromFile(avatarPath).image
-                                    .asImageBitmap(),
+                                bitmap = ImageProvider.fromFile(avatarPath).image.asImageBitmap(),
                                 contentDescription = user?.name ?: "Guest",
                                 modifier = Modifier.size(50.dp, 50.dp)
                             )
@@ -137,7 +147,7 @@ fun MapScreen(
 
 @Preview(showBackground = true, widthDp = 400, heightDp = 800)
 @Composable
-fun MapScreenPreview() {
+fun MapControlsPreview() {
     val users = remember {
         setOf<User>(
             User("123", "First", 50.0, 50.0, Date().time),
@@ -145,5 +155,5 @@ fun MapScreenPreview() {
             User("345", "Third", 52.0, 52.0, Date().time),
         )
     }
-    MapScreen(users = users)
+    MapControls(users = users)
 }

@@ -92,7 +92,7 @@ class GeolocationWorker(
     private fun requestCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(
                 applicationContext, Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             locationClient.getCurrentLocation(
                 Priority.PRIORITY_BALANCED_POWER_ACCURACY, CancellationTokenSource().token
