@@ -22,3 +22,4 @@ secrets.properties
 *.rar
 *.zip
 app/build
+app/google-services.json
