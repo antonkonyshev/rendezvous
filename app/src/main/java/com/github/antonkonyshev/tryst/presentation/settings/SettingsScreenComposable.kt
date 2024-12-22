@@ -95,6 +95,16 @@ fun SettingsScreen(
 
             Divider(thickness = 1.dp)
 
+            val groupName = remember {
+                mutableStateOf<String>(
+                    ctx.getSharedPreferences("avatars", 0).getString("group", "Guest")!!
+                )
+            }
+            val groupDialog = remember { mutableStateOf(false) }
+            GroupNameListItem(groupName, groupDialog)
+
+            Divider(thickness = 1.dp)
+
             for (user in listOf(null).plus(users)) {
                 val avatarPath = remember {
                     mutableStateOf<String?>(
@@ -168,6 +178,31 @@ fun UserNameListItem(userName: MutableState<String>, nameDialog: MutableState<Bo
 }
 
 @Composable
+fun GroupNameListItem(groupName: MutableState<String>, groupDialog: MutableState<Boolean>) {
+    val ctx = LocalContext.current
+    ListItem(
+        leadingContent = {
+            Text("", modifier = Modifier.size(60.dp, 60.dp))
+        },
+        headlineContent = {
+            Text(stringResource(R.string.your_group))
+        },
+        supportingContent = {
+            Text(groupName.value)
+        },
+        modifier = Modifier.clickable { groupDialog.value = true }
+    )
+    
+    AnimatedVisibility(visible = groupDialog.value) {
+        GroupNameDialog(groupName) {
+            ctx.getSharedPreferences("avatars", 0).edit().putString("group", groupName.value)
+                .commit()
+            groupDialog.value = false
+        }
+    }
+}
+
+@Composable
 fun AvatarListItem(user: User?, avatarPath: String?, onChange: (Uri?) -> Unit) {
     val ctx = LocalContext.current
     val avatarPicker = rememberLauncherForActivityResult(
@@ -218,6 +253,23 @@ fun UserNameDialog(
     )
 }
 
+@Composable
+fun GroupNameDialog(
+    groupName: MutableState<String>,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { onConfirm() },
+        title = { Text(stringResource(R.string.your_group)) },
+        text = { TextField(value = groupName.value, onValueChange = { groupName.value = it }) },
+        confirmButton = {
+            Button(onClick = { onConfirm() }) {
+                Text("OK")
+            }
+        }
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
@@ -245,4 +297,20 @@ fun UserNameDialogPreview() {
     val userName = remember { mutableStateOf("Test") }
     val nameDialog = remember { mutableStateOf(true) }
     UserNameListItem(userName = userName, nameDialog = nameDialog)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GroupNameListItemPreview() {
+    val groupName = remember { mutableStateOf("Test") }
+    val groupDialog = remember { mutableStateOf(false) }
+    GroupNameListItem(groupName, groupDialog)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GroupNameDialogPreview() {
+    val groupName = remember { mutableStateOf("Test") }
+    val groupDialog = remember { mutableStateOf(true) }
+    GroupNameListItem(groupName, groupDialog)
 }
