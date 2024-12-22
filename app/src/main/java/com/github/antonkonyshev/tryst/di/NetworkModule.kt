@@ -3,8 +3,12 @@ package com.github.antonkonyshev.tryst.di
 import com.github.antonkonyshev.tryst.BuildConfig.GITHUB_TOKEN
 import com.github.antonkonyshev.tryst.data.FirebaseRepositoryImpl
 import com.github.antonkonyshev.tryst.data.GistApiSchema
-import com.github.antonkonyshev.tryst.data.GistRepositoryImpl
 import com.github.antonkonyshev.tryst.domain.LocationRepository
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -38,6 +42,10 @@ val networkModule = module {
             .build()
             .create(GistApiSchema::class.java)
     }
+
+    single<FirebaseAuth> { Firebase.auth }
+
+    single<FirebaseFirestore> { Firebase.firestore }
 
 //    single<LocationRepository> { GistRepositoryImpl(get(), androidContext()) }
 

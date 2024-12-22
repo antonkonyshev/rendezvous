@@ -2,7 +2,6 @@ package com.github.antonkonyshev.tryst.data
 
 import com.github.antonkonyshev.tryst.domain.User
 import com.google.firebase.firestore.QueryDocumentSnapshot
-import java.util.Date
 
 object UserMapper {
     fun mapDomainToData(user: User): HashMap<String, Any?> {

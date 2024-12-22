@@ -5,16 +5,16 @@ import android.location.Location
 import android.util.Log
 import com.github.antonkonyshev.tryst.domain.LocationRepository
 import com.github.antonkonyshev.tryst.domain.User
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.util.Date
 
 class FirebaseRepositoryImpl(private val appContext: Context) : LocationRepository, KoinComponent {
-    private val auth = Firebase.auth
-    private val storage = Firebase.firestore
+    private val auth: FirebaseAuth by inject()
+    private val storage: FirebaseFirestore by inject()
 
     private suspend fun authenticate() {
         if (auth.currentUser == null) {
@@ -56,20 +56,20 @@ class FirebaseRepositoryImpl(private val appContext: Context) : LocationReposito
     override suspend fun saveLocation(location: Location) {
         authenticate()
         try {
-            val userDocument = UserMapper.mapDomainToDocument(
-                User(
-                    uid = auth.currentUser!!.uid,
-                    name = appContext.getSharedPreferences("avatars", 0)
-                        .getString("name", "Guest")!!,
-                    latitude = location.latitude,
-                    longitude = location.longitude,
-                    timestamp = Date().time,
-                    group = appContext.getSharedPreferences("avatars", 0)
-                        .getString("group", "Guest")!!,
+            storage.collection(LOCATIONS_COLLECTION).document(auth.currentUser!!.uid).set(
+                UserMapper.mapDomainToDocument(
+                    User(
+                        uid = auth.currentUser!!.uid,
+                        name = appContext.getSharedPreferences("avatars", 0)
+                            .getString("name", "Guest")!!,
+                        latitude = location.latitude,
+                        longitude = location.longitude,
+                        timestamp = Date().time,
+                        group = appContext.getSharedPreferences("avatars", 0)
+                            .getString("group", "Guest")!!,
+                    )
                 )
-            )
-            storage.collection(LOCATIONS_COLLECTION).document(auth.currentUser!!.uid)
-                .set(userDocument).await()
+            ).await()
         } catch (err: Exception) {
             Log.e(TAG, "Error on user location saving to the firestore: ${err.toString()}")
         }
