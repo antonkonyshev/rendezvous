@@ -6,4 +6,5 @@ class User(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val timestamp: Long = 0L,
+    var group: String = "Guest",
 )

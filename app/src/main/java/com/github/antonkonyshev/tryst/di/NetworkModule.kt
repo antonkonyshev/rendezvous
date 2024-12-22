@@ -1,6 +1,7 @@
 package com.github.antonkonyshev.tryst.di
 
 import com.github.antonkonyshev.tryst.BuildConfig.GITHUB_TOKEN
+import com.github.antonkonyshev.tryst.data.FirebaseRepositoryImpl
 import com.github.antonkonyshev.tryst.data.GistApiSchema
 import com.github.antonkonyshev.tryst.data.GistRepositoryImpl
 import com.github.antonkonyshev.tryst.domain.LocationRepository
@@ -38,7 +39,7 @@ val networkModule = module {
             .create(GistApiSchema::class.java)
     }
 
-    single { GistRepositoryImpl(get(), androidContext()) }
+//    single<LocationRepository> { GistRepositoryImpl(get(), androidContext()) }
 
-    single<LocationRepository> { GistRepositoryImpl(get(), androidContext()) }
+    single<LocationRepository> { FirebaseRepositoryImpl(androidContext()) }
 }
